@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+<meta name="theme-color" content="#111827" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Camera Tracker" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
+<title>Camera Reselling Tracker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📷%3C/text%3E%3C/svg%3E" />
+<style>
+  /* ---- Theme tokens ---- */
+  :root {
+    --bg: #f9fafb;
+    --bg-elevated: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f3f4f6;
+    --surface-3: #f9fafb;
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+    --text: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --text-faint: #9ca3af;
+    --text-on-accent: #ffffff;
+    --accent: #111827;
+    --accent-hover: #374151;
+    --accent-active: #1f2937;
+    --row-stock-bg: #ffffff;
+    --row-stock-border: #d1d5db;
+    --row-sold-bg: #f0fdf4;
+    --row-sold-border: #22c55e;
+    --row-sold-text: #166534;
+    --row-sold-stat-bg: #f0fdf4;
+    --row-sold-stat-border: #bbf7d0;
+    --row-repair-bg: #fef2f2;
+    --row-repair-border: #ef4444;
+    --row-repair-text: #991b1b;
+    --row-repair-stat-border: #fecaca;
+    --highlight-bg: #fef08a;
+    --highlight-text: inherit;
+    --modal-overlay: rgba(0,0,0,0.4);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --focus-ring: rgba(17,24,39,0.1);
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --profit-pos: #166534;
+    --profit-neg: #991b1b;
+    --dot-stock: #9ca3af;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0b0f17;
+    --bg-elevated: #131926;
+    --surface: #131926;
+    --surface-2: #1f2937;
+    --surface-3: #1a2230;
+    --border: #2a3344;
+    --border-strong: #3b4658;
+    --text: #f3f4f6;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-faint: #64748b;
+    --text-on-accent: #0b0f17;
+    --accent: #f3f4f6;
+    --accent-hover: #e5e7eb;
+    --accent-active: #d1d5db;
+    --row-stock-bg: #131926;
+    --row-stock-border: #3b4658;
+    --row-sold-bg: #0f2418;
+    --row-sold-border: #22c55e;
+    --row-sold-text: #86efac;
+    --row-sold-stat-bg: #0f2418;
+    --row-sold-stat-border: #14532d;
+    --row-repair-bg: #2a1416;
+    --row-repair-border: #ef4444;
+    --row-repair-text: #fca5a5;
+    --row-repair-stat-border: #7f1d1d;
+    --highlight-bg: #ca8a04;
+    --highlight-text: #ffffff;
+    --modal-overlay: rgba(0,0,0,0.7);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --focus-ring: rgba(243,244,246,0.2);
+    --danger: #f87171;
+    --danger-hover: #ef4444;
+    --profit-pos: #86efac;
+    --profit-neg: #fca5a5;
+    --dot-stock: #64748b;
+  }
+
+  /* ---- Base & reset ---- */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh; min-height: 100dvh;
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  button { font-family: inherit; font-size: 100%; line-height: 1.15; color: inherit; }
+  input, select, textarea {
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--text);
+    background: var(--surface);
+  }
+  button, [role="button"], summary { cursor: pointer; }
+
+  /* ---- Header ---- */
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .logo { background: var(--accent); color: var(--text-on-accent); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .header h1 { font-size: clamp(18px, 4.5vw, 22px); font-weight: 700; line-height: 1.2; }
+  .header p { font-size: clamp(12px, 3vw, 13px); color: var(--text-muted); margin-top: 2px; }
+  .header-actions { margin-left: auto; display: flex; gap: 6px; }
+  .theme-toggle {
+    background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border);
+    width: 40px; height: 40px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 18px; transition: background 0.15s, transform 0.2s;
+  }
+  .theme-toggle:hover { background: var(--surface-2); }
+  .theme-toggle:active { transform: scale(0.95); }
+
+  /* ---- Stats ---- */
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+  @media (min-width: 600px) { .stats { grid-template-columns: repeat(3, 1fr); gap: 12px; } }
+  @media (min-width: 900px)  { .stats { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 1200px) { .stats { grid-template-columns: repeat(7, 1fr); } }
+  .stat { background: var(--surface); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); min-width: 0; }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat-value { font-size: clamp(18px, 4.5vw, 22px); font-weight: 600; line-height: 1.2; word-break: break-word; }
+  .stat.sold { background: var(--row-sold-stat-bg); border-color: var(--row-sold-stat-border); }
+  .stat.sold .stat-label, .stat.sold .stat-value { color: var(--row-sold-text); }
+  .stat.repair { background: var(--row-repair-bg); border-color: var(--row-repair-stat-border); }
+  .stat.repair .stat-label, .stat.repair .stat-value { color: var(--row-repair-text); }
+  .stat.profit { background: var(--accent); }
+  .stat.profit .stat-label { color: var(--text-on-accent); opacity: 0.7; }
+  .stat.profit .stat-value { color: var(--text-on-accent); }
+
+  .stock-value { background: var(--surface); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 16px; font-size: 13px; color: var(--text-muted); }
+  .stock-value strong { color: var(--text); }
+
+  /* ---- Source tabs ---- */
+  .source-tabs {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 2px; margin-bottom: 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px;
+    overflow: hidden;
+  }
+  .source-tab {
+    padding: 10px 8px; border-radius: 7px; border: none; background: transparent;
+    font-size: clamp(12px, 3vw, 13px); font-weight: 500; color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: background 0.15s, color 0.15s;
+    min-height: 40px; min-width: 0;
+  }
+  .source-tab:hover { background: var(--surface-2); }
+  .source-tab.active { background: var(--accent); color: var(--text-on-accent); }
+  .source-tab .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .source-tab .count {
+    background: rgba(127,127,127,0.18); color: inherit;
+    padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .source-tab.active .count { background: rgba(127,127,127,0.3); }
+
+  /* ---- Controls ---- */
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .btn {
+    background: var(--accent); color: var(--text-on-accent); border: none;
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 40px;
+    touch-action: manipulation;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn:active { background: var(--accent-active); }
+  .btn-secondary { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface-2); }
+  .btn-secondary:active { background: var(--surface-3); }
+  .filters { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary);
+    min-height: 36px;
+    touch-action: manipulation;
+    transition: background 0.15s;
+  }
+  .filter-btn.active { background: var(--accent); color: var(--text-on-accent); border-color: var(--accent); }
+  @media (max-width: 600px) {
+    .filters { margin-left: 0; width: 100%; }
+    .filter-btn { flex: 1; min-width: 0; }
+  }
+
+  /* ---- Search ---- */
+  .search-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .search-wrap { flex: 1; position: relative; min-width: 0; }
+  .search-input {
+    width: 100%; padding: 10px 36px 10px 34px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 16px;
+    background: var(--surface); color: var(--text);
+    min-height: 40px;
+  }
+  .search-input::placeholder { color: var(--text-faint); }
+  .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--focus-ring); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-faint); font-size: 14px; pointer-events: none; }
+  .search-clear {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text-faint);
+    font-size: 22px; line-height: 1; padding: 4px 10px; border-radius: 4px;
+    display: none; min-height: 32px; min-width: 32px;
+  }
+  .search-clear:hover { color: var(--text-secondary); background: var(--surface-2); }
+  .search-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  mark.hl { background: var(--highlight-bg); color: var(--highlight-text); padding: 0 1px; border-radius: 2px; }
+
+  /* ---- Table ---- */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead { background: var(--surface-3); border-bottom: 1px solid var(--border); }
+  th { text-align: left; padding: 10px 12px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; white-space: nowrap; }
+  th.right, td.right { text-align: right; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr.in_stock { background: var(--row-stock-bg); border-left: 4px solid var(--row-stock-border); }
+  tr.sold { background: var(--row-sold-bg); border-left: 4px solid var(--row-sold-border); }
+  tr.sold td { color: var(--row-sold-text); }
+  tr.repair { background: var(--row-repair-bg); border-left: 4px solid var(--row-repair-border); }
+  tr.repair td { color: var(--row-repair-text); }
+  .name { font-weight: 500; }
+  .notes-preview { font-size: 11px; color: var(--text-muted); margin-top: 2px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nowrap { white-space: nowrap; }
+  .profit-pos { color: var(--profit-pos) !important; font-weight: 600; }
+  .profit-neg { color: var(--profit-neg) !important; font-weight: 600; }
+  .profit-none { color: var(--text-faint) !important; }
+
+  .icon-btn {
+    background: none; border: none; padding: 8px; color: var(--text-muted); border-radius: 4px;
+    font-size: 14px; min-width: 36px; min-height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+    touch-action: manipulation;
+  }
+  .icon-btn:hover { background: var(--surface); color: var(--text); }
+  .icon-btn.danger:hover { color: var(--danger); }
+
+  /* ---- Drag handle ---- */
+  .drag-handle {
+    color: var(--text-faint); user-select: none; -webkit-user-select: none;
+    font-size: 18px; line-height: 1;
+    touch-action: none;
+    transition: color 0.15s;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; min-height: 36px;
+    padding: 0 4px;
+    opacity: 0.6;
+  }
+  .drag-handle:hover { color: var(--text-muted); opacity: 1; }
+  .drag-handle:active { color: var(--text); }
+  td.drag-cell { width: 32px; padding: 0 0 0 4px; vertical-align: middle; }
+
+  tr.dragging, .card.dragging { opacity: 0.4; }
+  tr, .card { transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease; }
+  tr.no-anim, .card.no-anim { transition: none; }
+  tr.drop-target-above { box-shadow: inset 0 3px 0 0 var(--accent); }
+  tr.drop-target-below { box-shadow: inset 0 -3px 0 0 var(--accent); }
+  .card.drop-target-above { box-shadow: 0 -3px 0 0 var(--accent); }
+  .card.drop-target-below { box-shadow: 0 3px 0 0 var(--accent); }
+  .drag-disabled .drag-handle { opacity: 0.25; }
+  .drag-disabled .drag-handle:hover { color: var(--text-faint); opacity: 0.25; }
+
+  /* ---- Cards ---- */
+  .cards { display: none; flex-direction: column; gap: 8px; }
+  @media (max-width: 900px) {
+    .table-wrap { display: none; }
+    .cards { display: flex; }
+  }
+  .card { border: 1px solid var(--border); border-left-width: 4px; border-radius: 10px; padding: 12px; background: var(--surface); }
+  .card.in_stock { background: var(--row-stock-bg); border-left-color: var(--row-stock-border); }
+  .card.sold { background: var(--row-sold-bg); border-left-color: var(--row-sold-border); color: var(--row-sold-text); }
+  .card.repair { background: var(--row-repair-bg); border-left-color: var(--row-repair-border); color: var(--row-repair-text); }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .card-header-left { display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0; }
+  .card-name-block { min-width: 0; }
+  .card-name-block .name { word-break: break-word; }
+  .status-tag { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .card.sold .status-tag, .card.repair .status-tag { color: inherit; opacity: 0.85; }
+  .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .dot.in_stock { background: var(--dot-stock); }
+  .dot.sold { background: var(--row-sold-border); }
+  .dot.repair { background: var(--row-repair-border); }
+  .card-grid { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 13px; }
+  .card-grid .label { color: var(--text-muted); }
+  .card.sold .card-grid .label, .card.repair .card-grid .label { color: inherit; opacity: 0.7; }
+  .card-grid > div:not(.label) { word-break: break-word; }
+  .card-notes { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-secondary); word-break: break-word; }
+  .card.sold .card-notes, .card.repair .card-notes { color: inherit; opacity: 0.85; }
+
+  /* ---- Empty ---- */
+  .empty { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 40px 20px; text-align: center; }
+  .empty-icon { font-size: 40px; margin-bottom: 8px; opacity: 0.4; }
+  .empty p { color: var(--text-muted); font-size: 14px; }
+
+  /* ---- Modal ---- */
+  .modal-bg {
+    position: fixed; inset: 0; background: var(--modal-overlay); z-index: 50;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding: 0;
+    -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  }
+  @media (min-width: 600px) {
+    .modal-bg { align-items: center; padding: 16px; }
+  }
+  .modal {
+    background: var(--surface); border-radius: 16px 16px 0 0;
+    width: 100%; max-width: 600px;
+    max-height: 92vh; max-height: 92dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: env(safe-area-inset-bottom);
+    color: var(--text);
+  }
+  @media (min-width: 600px) { .modal { border-radius: 14px; } }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+    border-radius: 16px 16px 0 0;
+  }
+  @media (min-width: 600px) { .modal-header { border-radius: 14px 14px 0 0; } }
+  .modal-header h2 { font-size: 17px; font-weight: 600; }
+  .close-btn {
+    background: none; border: none; font-size: 28px; color: var(--text-faint);
+    line-height: 1; min-width: 36px; min-height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .close-btn:hover { color: var(--text-secondary); }
+  .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 8px;
+    font-size: 16px;
+    background: var(--surface); color: var(--text);
+    min-height: 44px;
+  }
+  .field textarea { min-height: 60px; resize: vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+  /* Date picker icon for dark mode */
+  [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.7);
+  }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  @media (max-width: 480px) {
+    .row-3 { grid-template-columns: 1fr; }
+  }
+  .status-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+  .status-btn {
+    flex: 1; padding: 10px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary);
+    min-height: 44px; min-width: 100px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .status-btn.active.in_stock { background: var(--surface); border-color: var(--border-strong); color: var(--text); }
+  .status-btn.active.sold { background: var(--row-sold-bg); border-color: var(--row-sold-border); color: var(--row-sold-text); }
+  .status-btn.active.repair { background: var(--row-repair-bg); border-color: var(--row-repair-border); color: var(--row-repair-text); }
+  .modal-actions { display: flex; gap: 8px; padding-top: 4px; }
+  .modal-actions .btn { flex: 1; padding: 12px; min-height: 48px; font-size: 14px; }
+
+  .footer { font-size: 11px; color: var(--text-faint); text-align: center; margin-top: 24px; padding-bottom: 8px; }
+
+  /* ---- Mode toggle (Cameras / Misc) ---- */
+  .mode-toggle {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 2px; margin-bottom: 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px;
+  }
+  .mode-btn {
+    padding: 12px 8px; border-radius: 7px; border: none; background: transparent;
+    font-size: 14px; font-weight: 500; color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.15s, color 0.15s;
+    min-height: 44px;
+  }
+  .mode-btn:hover { background: var(--surface-2); }
+  .mode-btn.active { background: var(--accent); color: var(--text-on-accent); }
+
+  /* Hide elements based on mode */
+  body[data-mode="cameras"] .misc-only { display: none !important; }
+  body[data-mode="misc"] .cameras-only { display: none !important; }
+
+  /* ---- Misc category badges ---- */
+  .cat-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 12px;
+    font-size: 11px; font-weight: 500;
+    background: var(--surface-2); color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .cat-badge.film { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+  .cat-badge.memory { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+  .cat-badge.cleaning { background: #ede9fe; color: #5b21b6; border-color: #ddd6fe; }
+  .cat-badge.shipping { background: #fce7f3; color: #9d174d; border-color: #fbcfe8; }
+  .cat-badge.other { background: var(--surface-2); color: var(--text-secondary); }
+  [data-theme="dark"] .cat-badge.film { background: #422006; color: #fcd34d; border-color: #713f12; }
+  [data-theme="dark"] .cat-badge.memory { background: #172554; color: #93c5fd; border-color: #1e3a8a; }
+  [data-theme="dark"] .cat-badge.cleaning { background: #2e1065; color: #c4b5fd; border-color: #4c1d95; }
+  [data-theme="dark"] .cat-badge.shipping { background: #500724; color: #f9a8d4; border-color: #831843; }
+
+  /* ---- Bottom add button ---- */
+  .add-bottom-btn {
+    width: 100%; margin-top: 12px; padding: 14px;
+    min-height: 48px; font-size: 14px; font-weight: 500;
+    justify-content: center;
+    border: 1px dashed var(--border-strong); background: transparent; color: var(--text-secondary);
+  }
+  .add-bottom-btn:hover { background: var(--surface); color: var(--text); border-style: solid; border-color: var(--accent); }
+  .add-bottom-btn:active { background: var(--surface-2); }
+
+  /* ---- Row numbers ---- */  td.row-num {
+    color: var(--text-faint); font-size: 11px; font-variant-numeric: tabular-nums;
+    text-align: right; padding-right: 8px; padding-left: 4px;
+    width: 42px; white-space: nowrap;
+  }
+  tr.sold td.row-num { color: var(--row-sold-text); opacity: 0.55; }
+  tr.repair td.row-num { color: var(--row-repair-text); opacity: 0.55; }
+  .card-num {
+    color: var(--text-faint); font-size: 11px; font-variant-numeric: tabular-nums;
+    font-weight: 500; align-self: flex-start; margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .card.sold .card-num, .card.repair .card-num { opacity: 0.7; }
+
+  /* ---- Quick action buttons ---- */
+  /* ---- Action cell: keep all buttons on one row ---- */
+  td.actions-cell { padding: 6px 8px; vertical-align: middle; white-space: nowrap; }
+  .actions-row {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 4px; flex-wrap: nowrap;
+  }
+  .quick-btn {
+    background: transparent; border: 1px solid var(--border); padding: 4px 8px;
+    border-radius: 6px; font-size: 11px; font-weight: 500; color: var(--text-secondary);
+    min-height: 30px;
+    display: inline-flex; align-items: center; gap: 3px;
+    touch-action: manipulation;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .quick-btn:hover { background: var(--surface-2); color: var(--text); }
+  .quick-btn.sell { border-color: var(--row-sold-border); color: var(--row-sold-text); }
+  .quick-btn.sell:hover { background: var(--row-sold-bg); }
+  .quick-btn.repair { border-color: var(--row-repair-border); color: var(--row-repair-text); }
+  .quick-btn.repair:hover { background: var(--row-repair-bg); }
+  .quick-btn.restock { border-color: var(--border-strong); }
+  .quick-btn.restock:hover { background: var(--surface-2); }
+  @media (max-width: 600px) {
+    .quick-btn { padding: 6px 10px; min-height: 34px; font-size: 12px; }
+  }
+
+  /* ---- Quick sell modal ---- */
+  .quick-modal { max-width: 420px; }
+
+  /* ---- Sync banner ---- */
+  .sync-banner {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 12px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px; font-size: 12px;
+    flex-wrap: wrap;
+  }
+  .sync-banner.warn { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+  .sync-banner.error { background: var(--row-repair-bg); border-color: var(--row-repair-border); color: var(--row-repair-text); }
+  .sync-banner.ok { background: var(--row-sold-bg); border-color: var(--row-sold-stat-border); color: var(--row-sold-text); }
+  [data-theme="dark"] .sync-banner.warn { background: #422006; border-color: #713f12; color: #fcd34d; }
+  .sync-banner-status { flex: 1; min-width: 0; }
+  .sync-banner-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sync-btn-mini {
+    background: transparent; border: 1px solid currentColor; padding: 4px 10px;
+    border-radius: 6px; font-size: 11px; cursor: pointer; color: inherit;
+    min-height: 28px; display: inline-flex; align-items: center; gap: 4px;
+    opacity: 0.85;
+  }
+  .sync-btn-mini:hover { opacity: 1; background: rgba(127,127,127,0.1); }
+  .sync-spinner {
+    display: inline-block; width: 10px; height: 10px;
+    border: 2px solid currentColor; border-right-color: transparent;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    vertical-align: middle; margin-right: 4px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .setup-help {
+    background: var(--surface-2); padding: 10px 12px; border-radius: 6px;
+    font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+  }
+  .setup-help code {
+    background: var(--surface-3); padding: 1px 5px; border-radius: 3px;
+    font-size: 11px; word-break: break-all;
+  }
+  .setup-status { font-size: 12px; padding: 8px 0; min-height: 20px; }
+  .setup-status.ok { color: var(--row-sold-text); }
+  .setup-status.error { color: var(--row-repair-text); }
+
+  /* ---- Verification check ---- */
+  .check-btn {
+    background: transparent; border: 1.5px solid var(--border-strong); 
+    width: 18px; height: 18px; border-radius: 4px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; color: transparent; font-size: 11px; font-weight: 700;
+    line-height: 1; transition: all 0.15s; padding: 0;
+    flex-shrink: 0;
+  }
+  .check-btn:hover { border-color: var(--accent); }
+  .check-btn.checked {
+    background: var(--accent); border-color: var(--accent); color: var(--text-on-accent);
+  }
+  .check-btn.checked:hover { opacity: 0.85; }
+  td.check-cell { width: 28px; text-align: center; padding: 4px 6px; vertical-align: middle; }
+
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">📷</div>
+    <div>
+      <h1>Camera Reselling Tracker</h1>
+      <p>Track your inventory, sales, and profits</p>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+    </div>
+  </div>
+
+  <div class="mode-toggle" id="mode-toggle">
+    <button class="mode-btn active" data-mode="cameras">📷 Cameras</button>
+    <button class="mode-btn" data-mode="misc">🛒 Misc Expenses</button>
+  </div>
+
+  <div class="sync-banner" id="sync-banner" style="display:none;">
+    <div class="sync-banner-status" id="sync-banner-status">Loading...</div>
+    <div class="sync-banner-actions">
+      <button class="sync-btn-mini" id="sync-now-btn" onclick="syncNow()" style="display:none;">↻ Sync</button>
+      <button class="sync-btn-mini" onclick="openSyncSetup()">⚙ Setup</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">📦 In Stock</div><div class="stat-value" id="stat-stock">0</div></div>
+    <div class="stat sold"><div class="stat-label">✓ Sold</div><div class="stat-value" id="stat-sold">0</div></div>
+    <div class="stat repair"><div class="stat-label">🔧 Repair</div><div class="stat-value" id="stat-repair">0</div></div>
+    <div class="stat"><div class="stat-label">💸 Bought</div><div class="stat-value" id="stat-bought">€0.00</div></div>
+    <div class="stat"><div class="stat-label">🔧 Extra Costs</div><div class="stat-value" id="stat-extra">€0.00</div></div>
+    <div class="stat"><div class="stat-label">💰 Sold</div><div class="stat-value" id="stat-revenue">€0.00</div></div>
+    <div class="stat profit"><div class="stat-label">📈 Total Profit</div><div class="stat-value" id="stat-profit">€0.00</div></div>
+  </div>
+
+  <div class="stock-value" id="stock-value-row" style="display:none;">
+    💶 Capital tied up in stock: <strong id="stock-value-amt">€0.00</strong>
+  </div>
+
+  <div class="source-tabs cameras-only" id="source-tabs">
+    <button class="source-tab active" data-source="all"><span class="label">All</span> <span class="count" id="source-count-all">0</span></button>
+    <button class="source-tab" data-source="Marktplaats"><span class="label">Marktplaats</span> <span class="count" id="source-count-Marktplaats">0</span></button>
+    <button class="source-tab" data-source="Vinted"><span class="label">Vinted</span> <span class="count" id="source-count-Vinted">0</span></button>
+    <button class="source-tab" data-source="Other"><span class="label">Other</span> <span class="count" id="source-count-Other">0</span></button>
+  </div>
+
+  <div class="controls cameras-only">
+    <button class="btn" onclick="openForm()">+ Add Camera</button>
+    <button class="btn btn-secondary" onclick="exportCSV()">⬇ CSV</button>
+    <button class="btn btn-secondary" onclick="downloadBackup()" title="Download a full JSON backup">💾 Backup</button>
+    <button class="btn btn-secondary" onclick="openImport()" title="Import or restore from a JSON file">📥 Import</button>
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="in_stock">In Stock</button>
+      <button class="filter-btn" data-filter="sold">Sold</button>
+      <button class="filter-btn" data-filter="repair">Repair</button>
+    </div>
+  </div>
+
+  <div class="controls misc-only">
+    <button class="btn" onclick="openMiscForm()">+ Add Expense</button>
+    <button class="btn btn-secondary" onclick="exportMiscCSV()">⬇ CSV</button>
+    <button class="btn btn-secondary" onclick="downloadBackup()" title="Download a full JSON backup">💾 Backup</button>
+    <button class="btn btn-secondary" onclick="openImport()" title="Import or restore from a JSON file">📥 Import</button>
+    <div class="filters" id="misc-filters">
+      <button class="filter-btn active" data-misc-filter="all">All</button>
+      <button class="filter-btn" data-misc-filter="film">Film</button>
+      <button class="filter-btn" data-misc-filter="memory">Memory</button>
+      <button class="filter-btn" data-misc-filter="cleaning">Cleaning</button>
+      <button class="filter-btn" data-misc-filter="shipping">Shipping</button>
+      <button class="filter-btn" data-misc-filter="other">Other</button>
+    </div>
+  </div>
+
+  <div class="search-row">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="search" class="search-input" id="search" placeholder="Search by name, notes, platform, price..." autocomplete="off" autocapitalize="off" autocorrect="off" />
+      <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear" aria-label="Clear search">×</button>
+    </div>
+    <span class="search-count" id="search-count"></span>
+  </div>
+
+  <div id="list-container"></div>
+
+  <div class="footer">Your data is saved automatically in your browser's local storage.</div>
+</div>
+
+<div class="modal-bg" id="modal" style="display:none;" onclick="if(event.target===this)closeForm()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Add Camera</h2>
+      <button class="close-btn" onclick="closeForm()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Camera Name *</label>
+        <input type="text" id="f-name" placeholder="e.g. Canon AE-1" autocapitalize="words" />
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <div class="status-buttons">
+          <button type="button" class="status-btn" data-status="in_stock" onclick="setStatus('in_stock')"><span class="dot in_stock"></span>In Stock</button>
+          <button type="button" class="status-btn" data-status="sold" onclick="setStatus('sold')"><span class="dot sold"></span>Sold</button>
+          <button type="button" class="status-btn" data-status="repair" onclick="setStatus('repair')"><span class="dot repair"></span>Repair</button>
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Buy Date</label><input type="date" id="f-buy-date" /></div>
+        <div class="field"><label>Sell Date</label><input type="date" id="f-sell-date" /></div>
+      </div>
+      <div class="row-3">
+        <div class="field"><label>Buy Price (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-buy-price" placeholder="0.00" /></div>
+        <div class="field"><label>Sell Price (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-sell-price" placeholder="0.00" /></div>
+        <div class="field"><label>Extra Costs (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-extra" placeholder="0.00" /></div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Bought From</label><select id="f-bought-from"><option>Vinted</option><option>Marktplaats</option><option>Other</option></select></div>
+        <div class="field"><label>Sold On</label><select id="f-sold-on"><option>Vinted</option><option>Marktplaats</option><option>Other</option></select></div>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="f-notes" placeholder="Condition, repairs needed, etc."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="save-btn" onclick="saveCamera()">Add Camera</button>
+        <button class="btn btn-secondary" onclick="closeForm()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="import-modal" style="display:none;" onclick="if(event.target===this)closeImport()">
+  <div class="modal" style="max-width: 540px;">
+    <div class="modal-header">
+      <h2>Import / Restore</h2>
+      <button class="close-btn" onclick="closeImport()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="setup-help">
+        Import a JSON backup file or a data file. Accepts files exported via the Backup button, or files prepared for bulk import.
+      </div>
+      <div class="field">
+        <label>Choose a JSON file</label>
+        <input type="file" id="import-file" accept=".json,application/json" onchange="onImportFileChange()" />
+      </div>
+      <div id="import-preview" style="display:none;">
+        <div class="setup-help" style="margin-bottom: 8px;" id="import-summary"></div>
+        <div class="field">
+          <label>How should this be imported?</label>
+          <div class="status-buttons">
+            <button type="button" class="status-btn active" id="import-mode-add" onclick="setImportMode('add')">➕ Add to existing</button>
+            <button type="button" class="status-btn" id="import-mode-replace" onclick="setImportMode('replace')" style="color: var(--row-repair-text);">⚠ Replace all</button>
+          </div>
+          <div class="setup-help" id="import-mode-explain" style="margin-top: 8px;">
+            Safer option — keeps your current data and adds the new items.
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="confirmImport()">Import</button>
+          <button class="btn btn-secondary" onclick="closeImport()">Cancel</button>
+        </div>
+      </div>
+      <div class="setup-status" id="import-status"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="sync-setup-modal" style="display:none;" onclick="if(event.target===this)closeSyncSetup()">
+  <div class="modal" style="max-width: 540px;">
+    <div class="modal-header">
+      <h2>Cloud Sync Setup</h2>
+      <button class="close-btn" onclick="closeSyncSetup()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="setup-help">
+        Sync your data to a free Supabase database so you can use the tracker on any device.
+        Get the values from your Supabase project: <strong>Settings → API Keys</strong> and <strong>Integrations → Data API</strong>.
+      </div>
+      <div class="field">
+        <label>Project URL</label>
+        <input type="url" id="supabase-url" placeholder="https://yourproject.supabase.co" autocomplete="off" autocapitalize="off" autocorrect="off" />
+      </div>
+      <div class="field">
+        <label>Publishable Key (sb_publishable_...)</label>
+        <input type="text" id="supabase-key" placeholder="sb_publishable_..." autocomplete="off" autocapitalize="off" autocorrect="off" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="test-connect-btn" onclick="testAndSaveSync()">Save & Test</button>
+        <button class="btn btn-secondary" onclick="closeSyncSetup()">Cancel</button>
+      </div>
+      <div class="setup-status" id="setup-status"></div>
+
+      <hr style="border: none; border-top: 1px solid var(--border); margin: 4px 0;" />
+
+      <div>
+        <h3 style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">Migrate local data</h3>
+        <div class="setup-help" style="margin-bottom: 8px;">
+          You have <strong id="local-cam-count">0</strong> cameras and <strong id="local-misc-count">0</strong> misc expenses saved in this browser.
+          Connect first, then push them up to the cloud.
+        </div>
+        <button class="btn btn-secondary" id="migrate-btn" onclick="migrateLocalToCloud()" disabled style="width: 100%; justify-content: center;">
+          Push local data to cloud
+        </button>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--border); margin: 4px 0;" />
+
+      <div>
+        <h3 style="font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--row-repair-text);">Disconnect</h3>
+        <div class="setup-help" style="margin-bottom: 8px;">
+          Stop syncing and go back to local-only storage. Your cloud data will not be deleted.
+        </div>
+        <button class="btn btn-secondary" onclick="disconnectSync()" style="width: 100%; justify-content: center; color: var(--row-repair-text);">
+          Disconnect from cloud
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="quick-sell-modal" style="display:none;" onclick="if(event.target===this)closeQuickSell()">
+  <div class="modal quick-modal">
+    <div class="modal-header">
+      <h2>Mark as Sold</h2>
+      <button class="close-btn" onclick="closeQuickSell()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px; color: var(--text-muted); margin-bottom: 4px;" id="qs-camera-name"></p>
+      <div class="row-2">
+        <div class="field"><label>Sell Date</label><input type="date" id="qs-date" /></div>
+        <div class="field"><label>Sell Price (€) *</label><input type="number" inputmode="decimal" step="0.01" id="qs-price" placeholder="0.00" /></div>
+      </div>
+      <div class="field">
+        <label>Sold On</label>
+        <select id="qs-platform">
+          <option>Vinted</option>
+          <option>Marktplaats</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="confirmQuickSell()">Mark as Sold</button>
+        <button class="btn btn-secondary" onclick="closeQuickSell()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="misc-modal" style="display:none;" onclick="if(event.target===this)closeMiscForm()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="misc-modal-title">Add Expense</h2>
+      <button class="close-btn" onclick="closeMiscForm()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Item Name *</label>
+        <input type="text" id="m-name" placeholder="e.g. Kodak Gold 200 (5-pack)" autocapitalize="sentences" />
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="m-category">
+          <option value="film">Film</option>
+          <option value="memory">Memory</option>
+          <option value="cleaning">Cleaning</option>
+          <option value="shipping">Shipping</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Date</label><input type="date" id="m-date" /></div>
+        <div class="field"><label>Cost (€)</label><input type="number" inputmode="decimal" step="0.01" id="m-cost" placeholder="0.00" /></div>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="m-notes" placeholder="Quantity, source, etc."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="misc-save-btn" onclick="saveMisc()">Add Expense</button>
+        <button class="btn btn-secondary" onclick="closeMiscForm()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'camera_tracker_v1';
+  const STATUSES = { in_stock: 'In Stock', sold: 'Sold', repair: 'Repair' };
+
+  let cameras = [];
+  let filter = 'all';
+  let sourceFilter = 'all';
+  let searchQuery = '';
+  let editingId = null;
+  let currentStatus = 'in_stock';
+
+  function load() {
+    try { const raw = localStorage.getItem(STORAGE_KEY); cameras = raw ? JSON.parse(raw) : []; }
+    catch (e) { cameras = []; }
+  }
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cameras)); }
+    catch (e) { alert('Could not save data — storage might be full or disabled.'); }
+  }
+
+  function fmtMoney(v) { if (v == null || isNaN(v)) return '—'; return '€' + Number(v).toFixed(2); }
+  function fmtDate(d) { return d || '—'; }
+  function calcProfit(c) {
+    if (!c.sell_price) return null;
+    return (parseFloat(c.sell_price) || 0) - (parseFloat(c.buy_price) || 0) - (parseFloat(c.additional_costs) || 0);
+  }
+
+  function render() {
+    const inStock = cameras.filter(c => c.status === 'in_stock').length;
+    const sold = cameras.filter(c => c.status === 'sold').length;
+    const repair = cameras.filter(c => c.status === 'repair').length;
+    const totalBought = cameras.reduce((s, c) => s + (parseFloat(c.buy_price) || 0), 0);
+    const totalExtra = cameras.reduce((s, c) => s + (parseFloat(c.additional_costs) || 0), 0);
+    const totalRevenue = cameras.reduce((s, c) => s + (parseFloat(c.sell_price) || 0), 0);
+    const totalProfit = cameras.reduce((s, c) => s + (calcProfit(c) || 0), 0);
+    const stockValue = cameras.filter(c => c.status !== 'sold')
+      .reduce((s, c) => s + (parseFloat(c.buy_price) || 0) + (parseFloat(c.additional_costs) || 0), 0);
+
+    document.getElementById('stat-stock').textContent = inStock;
+    document.getElementById('stat-sold').textContent = sold;
+    document.getElementById('stat-repair').textContent = repair;
+    document.getElementById('stat-bought').textContent = '€' + totalBought.toFixed(2);
+    document.getElementById('stat-extra').textContent = '€' + totalExtra.toFixed(2);
+    document.getElementById('stat-revenue').textContent = '€' + totalRevenue.toFixed(2);
+    document.getElementById('stat-profit').textContent = '€' + totalProfit.toFixed(2);
+
+    const stockRow = document.getElementById('stock-value-row');
+    if (stockValue > 0) {
+      stockRow.style.display = 'block';
+      document.getElementById('stock-value-amt').textContent = '€' + stockValue.toFixed(2);
+    } else { stockRow.style.display = 'none'; }
+
+    document.getElementById('source-count-all').textContent = cameras.length;
+    document.getElementById('source-count-Marktplaats').textContent = cameras.filter(c => c.bought_from === 'Marktplaats').length;
+    document.getElementById('source-count-Vinted').textContent = cameras.filter(c => c.bought_from === 'Vinted').length;
+    document.getElementById('source-count-Other').textContent = cameras.filter(c => c.bought_from === 'Other').length;
+
+    const container = document.getElementById('list-container');
+    let filtered = cameras;
+    if (sourceFilter !== 'all') filtered = filtered.filter(c => c.bought_from === sourceFilter);
+    if (filter !== 'all') filtered = filtered.filter(c => c.status === filter);
+
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      filtered = filtered.filter(c => {
+        const haystack = [
+          c.name, c.notes, c.bought_from, c.sold_on,
+          c.buy_date, c.sell_date,
+          c.buy_price, c.sell_price, c.additional_costs,
+          STATUSES[c.status]
+        ].filter(v => v !== '' && v != null).join(' ').toLowerCase();
+        return haystack.includes(q);
+      });
+    }
+    document.getElementById('search-count').textContent = q ? `${filtered.length} of ${cameras.length} match` : '';
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="empty"><div class="empty-icon">📷</div><p>${
+        cameras.length === 0 ? 'No cameras yet. Add your first one!' :
+        (q ? 'No cameras match your search.' : 'No cameras match this filter.')
+      }</p></div>`;
+      return;
+    }
+
+    let tableRows = '', cardItems = '';
+    filtered.forEach(c => {
+      const profit = calcProfit(c);
+      const profitClass = profit == null ? 'profit-none' : (profit >= 0 ? 'profit-pos' : 'profit-neg');
+      const fromTo = highlight(c.bought_from + (c.sell_price ? ' → ' + c.sold_on : ''), q);
+      const safeName = highlight(c.name, q);
+      const safeNotes = c.notes ? highlight(c.notes, q) : '';
+
+      tableRows += `<tr class="${c.status}" data-id="${c.id}">
+        <td class="drag-cell"><span class="drag-handle" title="Drag to reorder">⋮⋮</span></td>
+        <td><div class="name">${safeName}</div>${safeNotes ? `<div class="notes-preview">${safeNotes}</div>` : ''}</td>
+        <td class="nowrap">${highlight(fmtDate(c.buy_date), q)}</td>
+        <td class="nowrap">${highlight(fmtDate(c.sell_date), q)}</td>
+        <td class="right nowrap">${highlight(fmtMoney(parseFloat(c.buy_price) || null), q)}</td>
+        <td class="right nowrap">${highlight(fmtMoney(parseFloat(c.sell_price) || null), q)}</td>
+        <td class="right nowrap">${highlight(fmtMoney(parseFloat(c.additional_costs) || null), q)}</td>
+        <td class="right nowrap ${profitClass}">${fmtMoney(profit)}</td>
+        <td class="nowrap" style="font-size:12px;color:#4b5563;">${fromTo}</td>
+        <td class="right">
+          <button class="icon-btn" onclick="editCamera('${c.id}')" aria-label="Edit">✎</button>
+          <button class="icon-btn danger" onclick="deleteCamera('${c.id}')" aria-label="Delete">🗑</button>
+        </td>
+      </tr>`;
+
+      cardItems += `<div class="card ${c.status}" data-id="${c.id}">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+            <div class="card-name-block">
+              <div class="name">${safeName}</div>
+              <div class="status-tag"><span class="dot ${c.status}"></span>${STATUSES[c.status]}</div>
+            </div>
+          </div>
+          <div>
+            <button class="icon-btn" onclick="editCamera('${c.id}')" aria-label="Edit">✎</button>
+            <button class="icon-btn danger" onclick="deleteCamera('${c.id}')" aria-label="Delete">🗑</button>
+          </div>
+        </div>
+        <div class="card-grid">
+          <div class="label">Buy:</div><div>${highlight(fmtDate(c.buy_date), q)} · ${highlight(fmtMoney(parseFloat(c.buy_price) || null), q)}</div>
+          <div class="label">Sell:</div><div>${highlight(fmtDate(c.sell_date), q)} · ${highlight(fmtMoney(parseFloat(c.sell_price) || null), q)}</div>
+          <div class="label">Extra costs:</div><div>${highlight(fmtMoney(parseFloat(c.additional_costs) || null), q)}</div>
+          <div class="label">From → To:</div><div>${fromTo}</div>
+          <div class="label">Profit:</div><div class="${profitClass}">${fmtMoney(profit)}</div>
+        </div>
+        ${safeNotes ? `<div class="card-notes">${safeNotes}</div>` : ''}
+      </div>`;
+    });
+
+    container.innerHTML = `
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th style="width:32px;"></th>
+            <th>Camera</th><th>Buy Date</th><th>Sell Date</th>
+            <th class="right">Buy</th><th class="right">Sell</th><th class="right">Extra</th>
+            <th class="right">Profit</th><th>From → To</th><th></th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div></div>
+      <div class="cards">${cardItems}</div>`;
+
+    setupDragAndDrop();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+  }
+  function highlight(text, query) {
+    const safe = escapeHtml(text);
+    if (!query) return safe;
+    const q = query.trim();
+    if (!q) return safe;
+    const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    return safe.replace(re, '<mark class="hl">$1</mark>');
+  }
+
+  // ---- Drag and drop reordering (Pointer Events for touch + mouse) ----
+  let dragState = null;
+
+  function isReorderingAllowed() {
+    return filter === 'all' && sourceFilter === 'all' && !searchQuery.trim();
+  }
+
+  function setupDragAndDrop() {
+    const allowed = isReorderingAllowed();
+    const containers = [
+      document.querySelector('#list-container tbody'),
+      document.querySelector('#list-container .cards')
+    ].filter(Boolean);
+
+    containers.forEach(container => {
+      if (!allowed) {
+        container.classList.add('drag-disabled');
+        return;
+      }
+      container.classList.remove('drag-disabled');
+
+      const items = container.querySelectorAll('[data-id]');
+      items.forEach(el => {
+        const handle = el.querySelector('.drag-handle');
+        if (!handle) return;
+
+        // Use pointer events — works for both mouse and touch on all modern browsers
+        handle.addEventListener('pointerdown', (e) => onPointerDown(e, el, container));
+      });
+    });
+  }
+
+  function onPointerDown(e, el, container) {
+    e.preventDefault();
+    if (!isReorderingAllowed()) return;
+
+    dragState = {
+      el, container,
+      id: el.dataset.id,
+      startY: e.clientY,
+      currentTarget: null,
+      placeAbove: true,
+      pointerId: e.pointerId,
+      moved: false
+    };
+
+    el.classList.add('dragging');
+
+    // Capture pointer so we get events even outside the handle
+    try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointercancel', onPointerUp);
+  }
+
+  function onPointerMove(e) {
+    if (!dragState) return;
+    e.preventDefault();
+    dragState.moved = true;
+
+    // Find the element under the pointer (excluding our dragged one)
+    const items = dragState.container.querySelectorAll('[data-id]');
+    let target = null;
+    let placeAbove = true;
+
+    for (const item of items) {
+      if (item === dragState.el) continue;
+      const rect = item.getBoundingClientRect();
+      if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        target = item;
+        placeAbove = (e.clientY - rect.top) < rect.height / 2;
+        break;
+      }
+    }
+
+    // Edge case: pointer above first or below last
+    if (!target) {
+      const first = items[0] === dragState.el ? items[1] : items[0];
+      const last = items[items.length - 1] === dragState.el ? items[items.length - 2] : items[items.length - 1];
+      if (first) {
+        const firstRect = first.getBoundingClientRect();
+        if (e.clientY < firstRect.top) {
+          target = first;
+          placeAbove = true;
+        }
+      }
+      if (last && !target) {
+        const lastRect = last.getBoundingClientRect();
+        if (e.clientY > lastRect.bottom) {
+          target = last;
+          placeAbove = false;
+        }
+      }
+    }
+
+    // Update visual markers
+    items.forEach(item => item.classList.remove('drop-target-above', 'drop-target-below'));
+    if (target) {
+      target.classList.toggle('drop-target-above', placeAbove);
+      target.classList.toggle('drop-target-below', !placeAbove);
+    }
+
+    dragState.currentTarget = target;
+    dragState.placeAbove = placeAbove;
+
+    // Auto-scroll near edges
+    const scrollSpeed = 8;
+    const scrollZone = 60;
+    if (e.clientY < scrollZone) window.scrollBy(0, -scrollSpeed);
+    else if (e.clientY > window.innerHeight - scrollZone) window.scrollBy(0, scrollSpeed);
+  }
+
+  function onPointerUp(e) {
+    if (!dragState) return;
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('pointercancel', onPointerUp);
+
+    const { el, currentTarget, placeAbove, id, moved } = dragState;
+    el.classList.remove('dragging');
+    document.querySelectorAll('.drop-target-above, .drop-target-below').forEach(t => {
+      t.classList.remove('drop-target-above', 'drop-target-below');
+    });
+
+    if (moved && currentTarget && currentTarget.dataset.id !== id) {
+      reorderCameras(id, currentTarget.dataset.id, placeAbove);
+    }
+    dragState = null;
+  }
+
+  function reorderCameras(draggedId, targetId, placeAbove) {
+    const fromIdx = cameras.findIndex(c => c.id === draggedId);
+    if (fromIdx === -1) return;
+    const [moved] = cameras.splice(fromIdx, 1);
+    let toIdx = cameras.findIndex(c => c.id === targetId);
+    if (toIdx === -1) { cameras.splice(fromIdx, 0, moved); return; }
+    if (!placeAbove) toIdx += 1;
+    cameras.splice(toIdx, 0, moved);
+    save();
+    render();
+  }
+
+  // ---- Form / status / add / edit / delete ----
+  function setStatus(s) {
+    currentStatus = s;
+    document.querySelectorAll('.status-btn').forEach(b => {
+      b.className = 'status-btn' + (b.dataset.status === s ? ' active ' + s : '');
+    });
+  }
+
+  function openForm(id) {
+    editingId = id || null;
+    document.getElementById('modal-title').textContent = id ? 'Edit Camera' : 'Add Camera';
+    document.getElementById('save-btn').textContent = id ? 'Save Changes' : 'Add Camera';
+    const c = id ? cameras.find(x => x.id === id) : { name:'', buy_date:'', sell_date:'', buy_price:'', sell_price:'', additional_costs:'', bought_from:'Vinted', sold_on:'Vinted', status:'in_stock', notes:'' };
+    document.getElementById('f-name').value = c.name || '';
+    document.getElementById('f-buy-date').value = c.buy_date || '';
+    document.getElementById('f-sell-date').value = c.sell_date || '';
+    document.getElementById('f-buy-price').value = c.buy_price || '';
+    document.getElementById('f-sell-price').value = c.sell_price || '';
+    document.getElementById('f-extra').value = c.additional_costs || '';
+    document.getElementById('f-bought-from').value = c.bought_from || 'Vinted';
+    document.getElementById('f-sold-on').value = c.sold_on || 'Vinted';
+    document.getElementById('f-notes').value = c.notes || '';
+    setStatus(c.status || 'in_stock');
+    document.getElementById('modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // lock background scroll
+  }
+  function closeForm() {
+    document.getElementById('modal').style.display = 'none';
+    document.body.style.overflow = '';
+    editingId = null;
+  }
+
+  function saveCamera() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) { alert('Please enter a camera name'); return; }
+    const data = {
+      name,
+      buy_date: document.getElementById('f-buy-date').value,
+      sell_date: document.getElementById('f-sell-date').value,
+      buy_price: document.getElementById('f-buy-price').value,
+      sell_price: document.getElementById('f-sell-price').value,
+      additional_costs: document.getElementById('f-extra').value,
+      bought_from: document.getElementById('f-bought-from').value,
+      sold_on: document.getElementById('f-sold-on').value,
+      status: currentStatus,
+      notes: document.getElementById('f-notes').value
+    };
+    if (editingId) cameras = cameras.map(c => c.id === editingId ? { ...data, id: editingId } : c);
+    else cameras.push({ ...data, id: Date.now().toString() + Math.random().toString(36).slice(2, 6) });
+    save();
+    closeForm();
+    render();
+  }
+
+  function editCamera(id) { openForm(id); }
+  function deleteCamera(id) {
+    if (confirm('Delete this camera?')) {
+      cameras = cameras.filter(c => c.id !== id);
+      save();
+      render();
+    }
+  }
+
+  // ---- Tabs / filters / search ----
+  document.getElementById('filters').addEventListener('click', e => {
+    if (e.target.dataset.filter) {
+      filter = e.target.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+      render();
+    }
+  });
+
+  document.getElementById('source-tabs').addEventListener('click', e => {
+    const btn = e.target.closest('.source-tab');
+    if (!btn) return;
+    sourceFilter = btn.dataset.source;
+    document.querySelectorAll('.source-tab').forEach(b => b.classList.toggle('active', b.dataset.source === sourceFilter));
+    render();
+  });
+
+  const searchInput = document.getElementById('search');
+  const searchClear = document.getElementById('search-clear');
+  searchInput.addEventListener('input', e => {
+    searchQuery = e.target.value;
+    searchClear.style.display = searchQuery ? 'inline-flex' : 'none';
+    render();
+  });
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Escape') clearSearch(); });
+  function clearSearch() {
+    searchQuery = ''; searchInput.value = ''; searchClear.style.display = 'none';
+    render();
+  }
+
+  // Close modal with Escape
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('modal').style.display === 'flex') closeForm();
+    else if (document.getElementById('quick-sell-modal').style.display === 'flex') closeQuickSell();
+    else if (document.getElementById('misc-modal') && document.getElementById('misc-modal').style.display === 'flex') closeMiscForm();
+  });
+
+  // ---- Export ----
+  function exportCSV() {
+    if (cameras.length === 0) { alert('No cameras to export'); return; }
+    const headers = ['Name','Status','Buy Date','Sell Date','Buy Price','Sell Price','Extra Costs','Profit','Bought From','Sold On','Notes'];
+    const rows = cameras.map(c => {
+      const profit = calcProfit(c);
+      return [c.name, STATUSES[c.status], c.buy_date, c.sell_date, c.buy_price, c.sell_price,
+        c.additional_costs, profit == null ? '' : profit.toFixed(2),
+        c.bought_from, c.sell_price ? c.sold_on : '', (c.notes || '').replace(/\n/g, ' ')
+      ].map(v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }).join(',');
+    });
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'cameras_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Theme management ----
+  const THEME_KEY = 'camera_tracker_theme';
+  function getInitialTheme() {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch (e) {}
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    return 'light';
+  }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    // Update browser chrome color
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b0f17' : '#111827');
+  }
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  }
+  applyTheme(getInitialTheme());
+
+  // Follow system theme changes if user hasn't explicitly chosen
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      try {
+        if (!localStorage.getItem(THEME_KEY)) {
+          applyTheme(e.matches ? 'dark' : 'light');
+        }
+      } catch (_) {}
+    });
+  }
+
+  // ---- Misc Expenses ----
+  const MISC_KEY = 'camera_tracker_misc_v1';
+  const MODE_KEY = 'camera_tracker_mode';
+  const CATEGORIES = { film: 'Film', memory: 'Memory', cleaning: 'Cleaning', shipping: 'Shipping', other: 'Other' };
+
+  let miscItems = [];
+  let mode = 'cameras';
+  let miscFilter = 'all';
+  let editingMiscId = null;
+
+  function loadMisc() {
+    try { const raw = localStorage.getItem(MISC_KEY); miscItems = raw ? JSON.parse(raw) : []; }
+    catch (e) { miscItems = []; }
+  }
+  function saveMisc() {
+    try { localStorage.setItem(MISC_KEY, JSON.stringify(miscItems)); }
+    catch (e) { alert('Could not save data — storage might be full or disabled.'); }
+  }
+
+  function setMode(newMode) {
+    mode = newMode;
+    document.body.setAttribute('data-mode', mode);
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    try { localStorage.setItem(MODE_KEY, mode); } catch (_) {}
+    // Update search placeholder
+    const searchInput = document.getElementById('search');
+    if (mode === 'misc') {
+      searchInput.placeholder = 'Search expenses...';
+    } else {
+      searchInput.placeholder = 'Search by name, notes, platform, price...';
+    }
+    // Clear search when switching modes
+    searchInput.value = '';
+    searchQuery = '';
+    document.getElementById('search-clear').style.display = 'none';
+    render();
+  }
+
+  function totalMiscCost() {
+    return miscItems.reduce((s, m) => s + (parseFloat(m.cost) || 0), 0);
+  }
+
+  // ---- Misc form ----
+  function openMiscForm(id) {
+    editingMiscId = id || null;
+    document.getElementById('misc-modal-title').textContent = id ? 'Edit Expense' : 'Add Expense';
+    document.getElementById('misc-save-btn').textContent = id ? 'Save Changes' : 'Add Expense';
+    const m = id ? miscItems.find(x => x.id === id) : { name: '', category: 'film', date: '', cost: '', notes: '' };
+    document.getElementById('m-name').value = m.name || '';
+    document.getElementById('m-category').value = m.category || 'film';
+    document.getElementById('m-date').value = m.date || '';
+    document.getElementById('m-cost').value = m.cost || '';
+    document.getElementById('m-notes').value = m.notes || '';
+    document.getElementById('misc-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMiscForm() {
+    document.getElementById('misc-modal').style.display = 'none';
+    document.body.style.overflow = '';
+    editingMiscId = null;
+  }
+  function saveMisc_() {
+    // (named differently to avoid clashing with localStorage save)
+  }
+  function saveMisc() {
+    const name = document.getElementById('m-name').value.trim();
+    if (!name) { alert('Please enter an item name'); return; }
+    const data = {
+      name,
+      category: document.getElementById('m-category').value,
+      date: document.getElementById('m-date').value,
+      cost: document.getElementById('m-cost').value,
+      notes: document.getElementById('m-notes').value
+    };
+    if (editingMiscId) miscItems = miscItems.map(m => m.id === editingMiscId ? { ...data, id: editingMiscId } : m);
+    else miscItems.push({ ...data, id: 'm_' + Date.now() + Math.random().toString(36).slice(2, 6) });
+    saveMiscData();
+    closeMiscForm();
+    render();
+  }
+  function saveMiscData() {
+    try { localStorage.setItem(MISC_KEY, JSON.stringify(miscItems)); } catch (e) { alert('Could not save'); }
+  }
+  function editMisc(id) { openMiscForm(id); }
+  function deleteMisc(id) {
+    if (confirm('Delete this expense?')) {
+      miscItems = miscItems.filter(m => m.id !== id);
+      saveMiscData();
+      render();
+    }
+  }
+
+  function exportMiscCSV() {
+    if (miscItems.length === 0) { alert('No expenses to export'); return; }
+    const headers = ['Name','Category','Date','Cost','Notes'];
+    const rows = miscItems.map(m => {
+      return [m.name, CATEGORIES[m.category] || m.category, m.date, m.cost, (m.notes || '').replace(/\n/g, ' ')]
+        .map(v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; })
+        .join(',');
+    });
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'misc_expenses_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function renderMisc() {
+    const container = document.getElementById('list-container');
+    let filtered = miscItems;
+    if (miscFilter !== 'all') filtered = filtered.filter(m => m.category === miscFilter);
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      filtered = filtered.filter(m => {
+        const haystack = [m.name, m.notes, CATEGORIES[m.category], m.date, m.cost].filter(Boolean).join(' ').toLowerCase();
+        return haystack.includes(q);
+      });
+    }
+    document.getElementById('search-count').textContent = q ? `${filtered.length} of ${miscItems.length} match` : '';
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="empty"><div class="empty-icon">🛒</div><p>${
+        miscItems.length === 0 ? 'No expenses yet. Add film, memory cards, shipping costs, etc.' :
+        (q ? 'No expenses match your search.' : 'No expenses match this filter.')
+      }</p></div>`;
+      return;
+    }
+
+    let tableRows = '', cardItems = '';
+    filtered.forEach(m => {
+      const safeName = highlight(m.name, q);
+      const safeNotes = m.notes ? highlight(m.notes, q) : '';
+      const cat = m.category || 'other';
+      const catLabel = CATEGORIES[cat] || cat;
+      const cost = parseFloat(m.cost) || 0;
+
+      tableRows += `<tr data-id="${m.id}">
+        <td><div class="name">${safeName}</div>${safeNotes ? `<div class="notes-preview">${safeNotes}</div>` : ''}</td>
+        <td><span class="cat-badge ${cat}">${catLabel}</span></td>
+        <td class="nowrap">${highlight(m.date || '—', q)}</td>
+        <td class="right nowrap">${highlight(fmtMoney(cost || null), q)}</td>
+        <td class="right">
+          <button class="icon-btn" onclick="editMisc('${m.id}')" aria-label="Edit">✎</button>
+          <button class="icon-btn danger" onclick="deleteMisc('${m.id}')" aria-label="Delete">🗑</button>
+        </td>
+      </tr>`;
+
+      cardItems += `<div class="card" data-id="${m.id}">
+        <div class="card-header">
+          <div class="card-header-left">
+            <div class="card-name-block">
+              <div class="name">${safeName}</div>
+              <div class="status-tag"><span class="cat-badge ${cat}">${catLabel}</span></div>
+            </div>
+          </div>
+          <div>
+            <button class="icon-btn" onclick="editMisc('${m.id}')" aria-label="Edit">✎</button>
+            <button class="icon-btn danger" onclick="deleteMisc('${m.id}')" aria-label="Delete">🗑</button>
+          </div>
+        </div>
+        <div class="card-grid">
+          <div class="label">Date:</div><div>${highlight(m.date || '—', q)}</div>
+          <div class="label">Cost:</div><div>${highlight(fmtMoney(cost || null), q)}</div>
+        </div>
+        ${safeNotes ? `<div class="card-notes">${safeNotes}</div>` : ''}
+      </div>`;
+    });
+
+    container.innerHTML = `
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Item</th><th>Category</th><th>Date</th>
+            <th class="right">Cost</th><th></th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div></div>
+      <div class="cards">${cardItems}</div>
+      <button class="btn add-bottom-btn" onclick="openMiscForm()">+ Add Expense</button>`;
+  }
+
+  // Wrap the original render to dispatch by mode
+  const _renderCameras = render;
+  render = function() {
+    // Always update stats (they show in both modes)
+    const inStock = cameras.filter(c => c.status === 'in_stock').length;
+    const sold = cameras.filter(c => c.status === 'sold').length;
+    const repair = cameras.filter(c => c.status === 'repair').length;
+    const totalBought = cameras.reduce((s, c) => s + (parseFloat(c.buy_price) || 0), 0);
+    const totalExtra = cameras.reduce((s, c) => s + (parseFloat(c.additional_costs) || 0), 0);
+    const totalRevenue = cameras.reduce((s, c) => s + (parseFloat(c.sell_price) || 0), 0);
+    const cameraProfit = cameras.reduce((s, c) => s + (calcProfit(c) || 0), 0);
+    const miscTotal = totalMiscCost();
+    const totalProfit = cameraProfit - miscTotal;
+    const stockValue = cameras.filter(c => c.status !== 'sold')
+      .reduce((s, c) => s + (parseFloat(c.buy_price) || 0) + (parseFloat(c.additional_costs) || 0), 0);
+
+    document.getElementById('stat-stock').textContent = inStock;
+    document.getElementById('stat-sold').textContent = sold;
+    document.getElementById('stat-repair').textContent = repair;
+    document.getElementById('stat-bought').textContent = '€' + totalBought.toFixed(2);
+    document.getElementById('stat-extra').textContent = '€' + (totalExtra + miscTotal).toFixed(2);
+    document.getElementById('stat-revenue').textContent = '€' + totalRevenue.toFixed(2);
+    document.getElementById('stat-profit').textContent = '€' + totalProfit.toFixed(2);
+
+    const stockRow = document.getElementById('stock-value-row');
+    if (stockValue > 0) {
+      stockRow.style.display = 'block';
+      document.getElementById('stock-value-amt').textContent = '€' + stockValue.toFixed(2);
+    } else { stockRow.style.display = 'none'; }
+
+    if (mode === 'misc') {
+      renderMisc();
+    } else {
+      // Update tab counts and render the camera table
+      document.getElementById('source-count-all').textContent = cameras.length;
+      document.getElementById('source-count-Marktplaats').textContent = cameras.filter(c => c.bought_from === 'Marktplaats').length;
+      document.getElementById('source-count-Vinted').textContent = cameras.filter(c => c.bought_from === 'Vinted').length;
+      document.getElementById('source-count-Other').textContent = cameras.filter(c => c.bought_from === 'Other').length;
+
+      const container = document.getElementById('list-container');
+      let filtered = cameras;
+      if (sourceFilter !== 'all') filtered = filtered.filter(c => c.bought_from === sourceFilter);
+      if (filter !== 'all') filtered = filtered.filter(c => c.status === filter);
+
+      const q = searchQuery.trim().toLowerCase();
+      if (q) {
+        filtered = filtered.filter(c => {
+          const haystack = [
+            c.name, c.notes, c.bought_from, c.sold_on,
+            c.buy_date, c.sell_date,
+            c.buy_price, c.sell_price, c.additional_costs,
+            STATUSES[c.status]
+          ].filter(v => v !== '' && v != null).join(' ').toLowerCase();
+          return haystack.includes(q);
+        });
+      }
+      document.getElementById('search-count').textContent = q ? `${filtered.length} of ${cameras.length} match` : '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">📷</div><p>${
+          cameras.length === 0 ? 'No cameras yet. Add your first one!' :
+          (q ? 'No cameras match your search.' : 'No cameras match this filter.')
+        }</p></div>`;
+        return;
+      }
+
+      let tableRows = '', cardItems = '';
+      filtered.forEach(c => {
+        const profit = calcProfit(c);
+        const profitClass = profit == null ? 'profit-none' : (profit >= 0 ? 'profit-pos' : 'profit-neg');
+        const fromTo = highlight(c.bought_from + (c.sell_price ? ' → ' + c.sold_on : ''), q);
+        const safeName = highlight(c.name, q);
+        const safeNotes = c.notes ? highlight(c.notes, q) : '';
+        const itemNumber = cameras.findIndex(x => x.id === c.id) + 1;
+
+        const checkedCls = c.checked ? ' is-checked' : '';
+        tableRows += `<tr class="${c.status}${checkedCls}" data-id="${c.id}">
+          <td class="drag-cell"><span class="drag-handle" title="Drag to reorder">⋮⋮</span></td>
+          <td class="row-num">${itemNumber}</td>
+          <td><div class="name">${safeName}</div>${safeNotes ? `<div class="notes-preview">${safeNotes}</div>` : ''}</td>
+          <td class="nowrap">${highlight(fmtDate(c.buy_date), q)}</td>
+          <td class="nowrap">${highlight(fmtDate(c.sell_date), q)}</td>
+          <td class="right nowrap">${highlight(fmtMoney(parseFloat(c.buy_price) || null), q)}</td>
+          <td class="right nowrap">${highlight(fmtMoney(parseFloat(c.sell_price) || null), q)}</td>
+          <td class="right nowrap">${highlight(fmtMoney(parseFloat(c.additional_costs) || null), q)}</td>
+          <td class="right nowrap ${profitClass}">${fmtMoney(profit)}</td>
+          <td class="nowrap" style="font-size:12px;color:var(--text-secondary);">${fromTo}</td>
+          <td class="actions-cell">
+            <div class="actions-row">
+              ${quickActionsFor(c)}
+              <button class="icon-btn" onclick="editCamera('${c.id}')" aria-label="Edit">✎</button>
+              <button class="icon-btn danger" onclick="deleteCamera('${c.id}')" aria-label="Delete">🗑</button>
+            </div>
+          </td>
+          <td class="check-cell">
+            <button class="check-btn${c.checked ? ' checked' : ''}" onclick="toggleChecked('${c.id}')" title="${c.checked ? 'Verified — click to uncheck' : 'Mark as verified'}" aria-label="Verified">✓</button>
+          </td>
+        </tr>`;
+
+        cardItems += `<div class="card ${c.status}${checkedCls}" data-id="${c.id}">
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+              <span class="card-num">#${itemNumber}</span>
+              <div class="card-name-block">
+                <div class="name">${safeName}</div>
+                <div class="status-tag"><span class="dot ${c.status}"></span>${STATUSES[c.status]}</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="check-btn${c.checked ? ' checked' : ''}" onclick="toggleChecked('${c.id}')" title="${c.checked ? 'Verified — click to uncheck' : 'Mark as verified'}" aria-label="Verified">✓</button>
+              <button class="icon-btn" onclick="editCamera('${c.id}')" aria-label="Edit">✎</button>
+              <button class="icon-btn danger" onclick="deleteCamera('${c.id}')" aria-label="Delete">🗑</button>
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">${quickActionsFor(c)}</div>
+          <div class="card-grid">
+            <div class="label">Buy:</div><div>${highlight(fmtDate(c.buy_date), q)} · ${highlight(fmtMoney(parseFloat(c.buy_price) || null), q)}</div>
+            <div class="label">Sell:</div><div>${highlight(fmtDate(c.sell_date), q)} · ${highlight(fmtMoney(parseFloat(c.sell_price) || null), q)}</div>
+            <div class="label">Extra costs:</div><div>${highlight(fmtMoney(parseFloat(c.additional_costs) || null), q)}</div>
+            <div class="label">From → To:</div><div>${fromTo}</div>
+            <div class="label">Profit:</div><div class="${profitClass}">${fmtMoney(profit)}</div>
+          </div>
+          ${safeNotes ? `<div class="card-notes">${safeNotes}</div>` : ''}
+        </div>`;
+      });
+
+      container.innerHTML = `
+        <div class="table-wrap"><div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th style="width:32px;"></th>
+              <th style="width:42px; text-align:right;">#</th>
+              <th>Camera</th><th>Buy Date</th><th>Sell Date</th>
+              <th class="right">Buy</th><th class="right">Sell</th><th class="right">Extra</th>
+              <th class="right">Profit</th><th>From → To</th><th></th>
+              <th style="width:36px; text-align:center;" title="Verified">✓</th>
+            </tr></thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </div></div>
+        <div class="cards">${cardItems}</div>
+        <button class="btn add-bottom-btn" onclick="openForm()">+ Add Camera</button>`;
+
+      setupDragAndDrop();
+    }
+  };
+
+  // ---- Verification check toggle ----
+  function toggleChecked(id) {
+    const cam = cameras.find(c => c.id === id);
+    if (!cam) return;
+    cam.checked = !cam.checked;
+    _lastChangedCamera = id;
+    save();
+    render();
+  }
+
+  // ---- Quick action buttons ----
+  function quickActionsFor(c) {
+    if (c.status === 'in_stock') {
+      return `<button class="quick-btn sell" onclick="quickSell('${c.id}')" title="Mark as sold">✓ Sold</button>` +
+             `<button class="quick-btn repair" onclick="markRepair('${c.id}')" title="Mark for repair">🔧 Repair</button>`;
+    }
+    if (c.status === 'sold') {
+      return '';
+    }
+    if (c.status === 'repair') {
+      return `<button class="quick-btn sell" onclick="quickSell('${c.id}')" title="Mark as sold">✓ Sold</button>`;
+    }
+    return '';
+  }
+
+  function markRepair(id) {
+    const cam = cameras.find(c => c.id === id);
+    if (!cam) return;
+    cam.status = 'repair';
+    save();
+    render();
+  }
+
+  function markRestock(id) {
+    const cam = cameras.find(c => c.id === id);
+    if (!cam) return;
+    cam.status = 'in_stock';
+    // If it was sold and is being restocked, clear sell info to avoid stale data showing in profit
+    if (confirm('Move this camera back to In Stock?\n\nClick OK to clear the sell date and price too. Click Cancel to keep them.')) {
+      cam.sell_date = '';
+      cam.sell_price = '';
+    }
+    save();
+    render();
+  }
+
+  // Quick-sell flow with mini modal
+  let quickSellId = null;
+  function quickSell(id) {
+    const cam = cameras.find(c => c.id === id);
+    if (!cam) return;
+    quickSellId = id;
+    document.getElementById('qs-camera-name').textContent = cam.name;
+    // Default sell date to today
+    document.getElementById('qs-date').value = cam.sell_date || new Date().toISOString().slice(0, 10);
+    document.getElementById('qs-price').value = cam.sell_price || '';
+    document.getElementById('qs-platform').value = cam.sold_on || cam.bought_from || 'Vinted';
+    document.getElementById('quick-sell-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('qs-price').focus(), 50);
+  }
+
+  function closeQuickSell() {
+    document.getElementById('quick-sell-modal').style.display = 'none';
+    document.body.style.overflow = '';
+    quickSellId = null;
+  }
+
+  function confirmQuickSell() {
+    if (!quickSellId) return;
+    const price = document.getElementById('qs-price').value.trim();
+    if (!price) { alert('Please enter a sell price'); return; }
+    const cam = cameras.find(c => c.id === quickSellId);
+    if (!cam) return;
+    cam.status = 'sold';
+    cam.sell_date = document.getElementById('qs-date').value;
+    cam.sell_price = price;
+    cam.sold_on = document.getElementById('qs-platform').value;
+    save();
+    closeQuickSell();
+    render();
+  }
+
+  // Submit quick-sell on Enter
+  document.getElementById('qs-price').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); confirmQuickSell(); }
+  });
+
+  // Wire up mode toggle
+  document.getElementById('mode-toggle').addEventListener('click', e => {
+    const btn = e.target.closest('.mode-btn');
+    if (!btn) return;
+    setMode(btn.dataset.mode);
+  });
+
+  // Wire up misc filters
+  document.getElementById('misc-filters').addEventListener('click', e => {
+    if (e.target.dataset.miscFilter) {
+      miscFilter = e.target.dataset.miscFilter;
+      document.querySelectorAll('#misc-filters .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.miscFilter === miscFilter));
+      render();
+    }
+  });
+
+  // Initialize mode from saved or default to cameras
+  let savedMode = 'cameras';
+  try { savedMode = localStorage.getItem(MODE_KEY) || 'cameras'; } catch (_) {}
+  if (savedMode !== 'cameras' && savedMode !== 'misc') savedMode = 'cameras';
+
+  // Update the Extra Costs stat label to reflect that it now includes misc
+  document.querySelector('.stat:nth-of-type(5) .stat-label').textContent = '🔧 Extra + Misc';
+
+  // ============================================================
+  // CLOUD SYNC (Supabase)
+  // ============================================================
+  const SYNC_KEY = 'camera_tracker_supabase';
+  let syncConfig = null; // { url, key }
+  let syncing = false;
+  let lastSyncedAt = null;
+
+  function loadSyncConfig() {
+    try {
+      const raw = localStorage.getItem(SYNC_KEY);
+      if (raw) syncConfig = JSON.parse(raw);
+    } catch (e) {}
+  }
+  function saveSyncConfig() {
+    if (syncConfig) localStorage.setItem(SYNC_KEY, JSON.stringify(syncConfig));
+    else localStorage.removeItem(SYNC_KEY);
+  }
+  function isConnected() { return syncConfig && syncConfig.url && syncConfig.key; }
+
+  async function sbFetch(path, options = {}) {
+    if (!isConnected()) throw new Error('Not connected to cloud');
+    const url = syncConfig.url.replace(/\/+$/, '') + '/rest/v1' + path;
+    const headers = {
+      'apikey': syncConfig.key,
+      'Authorization': 'Bearer ' + syncConfig.key,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(options.headers || {})
+    };
+    const res = await fetch(url, { ...options, headers });
+    if (!res.ok) {
+      const text = await res.text();
+      let msg = `HTTP ${res.status}`;
+      try {
+        const json = JSON.parse(text);
+        if (json.message) msg = json.message;
+        else if (json.error) msg = json.error;
+        else if (json.hint) msg = json.hint;
+      } catch (_) { if (text) msg += ': ' + text.slice(0, 200); }
+      throw new Error(msg);
+    }
+    if (res.status === 204) return null;
+    return await res.json();
+  }
+
+  // ---- Sync banner UI ----
+  function setSyncBanner(level, html, showSyncBtn = true) {
+    const banner = document.getElementById('sync-banner');
+    banner.style.display = 'flex';
+    banner.className = 'sync-banner ' + level;
+    document.getElementById('sync-banner-status').innerHTML = html;
+    document.getElementById('sync-now-btn').style.display = (isConnected() && showSyncBtn) ? 'inline-flex' : 'none';
+  }
+  function fmtTime(d) { return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+
+  // ---- Pull from cloud ----
+  async function pullFromCloud() {
+    const [remoteCams, remoteMisc] = await Promise.all([
+      sbFetch('/cameras?select=*&order=position.asc'),
+      sbFetch('/misc_expenses?select=*&order=date.desc')
+    ]);
+
+    cameras = (remoteCams || []).map(r => ({
+      id: r.id,
+      name: r.name || '',
+      status: r.status || 'in_stock',
+      buy_date: r.buy_date || '',
+      sell_date: r.sell_date || '',
+      buy_price: r.buy_price || '',
+      sell_price: r.sell_price || '',
+      additional_costs: r.additional_costs || '',
+      bought_from: r.bought_from || 'Vinted',
+      sold_on: r.sold_on || 'Vinted',
+      notes: r.notes || '',
+      checked: r.checked === true
+    }));
+    miscItems = (remoteMisc || []).map(r => ({
+      id: r.id,
+      name: r.name || '',
+      category: r.category || 'other',
+      date: r.date || '',
+      cost: r.cost || '',
+      notes: r.notes || ''
+    }));
+    saveLocalCache();
+  }
+
+  // ---- Push individual records ----
+  async function pushCamera(cam) {
+    const idx = cameras.findIndex(c => c.id === cam.id);
+    const position = idx >= 0 ? idx : cameras.length;
+    const payload = {
+      id: cam.id,
+      name: cam.name, status: cam.status,
+      buy_date: cam.buy_date || null, sell_date: cam.sell_date || null,
+      buy_price: cam.buy_price || null, sell_price: cam.sell_price || null,
+      additional_costs: cam.additional_costs || null,
+      bought_from: cam.bought_from || null, sold_on: cam.sold_on || null,
+      notes: cam.notes || null,
+      checked: cam.checked === true,
+      position: position
+    };
+    await sbFetch('/cameras?on_conflict=id', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async function deleteCameraRemote(id) {
+    await sbFetch('/cameras?id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+  }
+
+  async function pushMisc(m) {
+    const payload = {
+      id: m.id,
+      name: m.name, category: m.category,
+      date: m.date || null, cost: m.cost || null,
+      notes: m.notes || null
+    };
+    await sbFetch('/misc_expenses?on_conflict=id', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async function deleteMiscRemote(id) {
+    await sbFetch('/misc_expenses?id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+  }
+
+  // ---- Save positions when reordering ----
+  async function pushAllPositions() {
+    if (!isConnected()) return;
+    // Update the position field for every camera based on their order
+    const promises = cameras.map((c, i) => sbFetch('/cameras?id=eq.' + encodeURIComponent(c.id), {
+      method: 'PATCH',
+      body: JSON.stringify({ position: i })
+    }).catch(e => console.warn('Position update failed for', c.id, e)));
+    await Promise.all(promises);
+  }
+
+  // ---- Local cache + sync orchestration ----
+  function saveLocalCache() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cameras));
+      localStorage.setItem(MISC_KEY, JSON.stringify(miscItems));
+    } catch (e) {}
+  }
+
+  // Wrap original save() / saveMiscData() so they also push to cloud
+  const _origSave = save;
+  const _origSaveMisc = saveMiscData;
+
+  // Track which item changed last so we know what to push
+  let _lastChangedCamera = null;
+  let _lastDeletedCamera = null;
+  let _lastChangedMisc = null;
+  let _lastDeletedMisc = null;
+
+  save = function() {
+    _origSave();
+    if (!isConnected()) return;
+    // Push the most-recently-changed camera, or all if we don't know
+    if (_lastDeletedCamera) {
+      const id = _lastDeletedCamera; _lastDeletedCamera = null;
+      setSyncing(true);
+      deleteCameraRemote(id)
+        .then(() => onSyncSuccess())
+        .catch(e => onSyncError('Delete failed: ' + e.message))
+        .finally(() => setSyncing(false));
+    } else if (_lastChangedCamera) {
+      const cam = cameras.find(c => c.id === _lastChangedCamera);
+      _lastChangedCamera = null;
+      if (cam) {
+        setSyncing(true);
+        pushCamera(cam)
+          .then(() => onSyncSuccess())
+          .catch(e => onSyncError('Save failed: ' + e.message))
+          .finally(() => setSyncing(false));
+      }
+    } else {
+      // Reorder or unknown change — push positions
+      setSyncing(true);
+      pushAllPositions()
+        .then(() => onSyncSuccess())
+        .catch(e => onSyncError('Reorder sync failed: ' + e.message))
+        .finally(() => setSyncing(false));
+    }
+  };
+
+  saveMiscData = function() {
+    _origSaveMisc();
+    if (!isConnected()) return;
+    if (_lastDeletedMisc) {
+      const id = _lastDeletedMisc; _lastDeletedMisc = null;
+      setSyncing(true);
+      deleteMiscRemote(id)
+        .then(() => onSyncSuccess())
+        .catch(e => onSyncError('Delete failed: ' + e.message))
+        .finally(() => setSyncing(false));
+    } else if (_lastChangedMisc) {
+      const m = miscItems.find(x => x.id === _lastChangedMisc);
+      _lastChangedMisc = null;
+      if (m) {
+        setSyncing(true);
+        pushMisc(m)
+          .then(() => onSyncSuccess())
+          .catch(e => onSyncError('Save failed: ' + e.message))
+          .finally(() => setSyncing(false));
+      }
+    }
+  };
+
+  function setSyncing(on) {
+    syncing = on;
+    if (on) setSyncBanner('warn', '<span class="sync-spinner"></span> Syncing...');
+  }
+  function onSyncSuccess() {
+    lastSyncedAt = new Date();
+    setSyncBanner('ok', `✓ Synced · ${cameras.length} cameras, ${miscItems.length} expenses · ${fmtTime(lastSyncedAt)}`);
+  }
+  function onSyncError(msg) {
+    setSyncBanner('error', `✗ ${msg} <span style="opacity:0.7;">(saved locally)</span>`);
+  }
+
+  // ---- Hook into save/delete/edit calls so we know what changed ----
+  // Wrap saveCamera (the one that adds/edits cameras)
+  const _origSaveCamera = saveCamera;
+  saveCamera = function() {
+    const wasEditing = editingId;
+    _origSaveCamera();
+    // saveCamera() resets editingId, so we figure out the changed id from the cameras list
+    if (wasEditing) {
+      _lastChangedCamera = wasEditing;
+    } else {
+      // newly added — last in array
+      _lastChangedCamera = cameras[cameras.length - 1]?.id;
+    }
+    if (isConnected()) save();
+  };
+
+  const _origDeleteCamera = deleteCamera;
+  deleteCamera = function(id) {
+    if (!confirm('Delete this camera?')) return;
+    _lastDeletedCamera = id;
+    cameras = cameras.filter(c => c.id !== id);
+    save();
+    render();
+  };
+
+  const _origMarkRepair = markRepair;
+  markRepair = function(id) {
+    _lastChangedCamera = id;
+    _origMarkRepair(id);
+  };
+  const _origMarkRestock = markRestock;
+  markRestock = function(id) {
+    _lastChangedCamera = id;
+    _origMarkRestock(id);
+  };
+  const _origConfirmQuickSell = confirmQuickSell;
+  confirmQuickSell = function() {
+    if (quickSellId) _lastChangedCamera = quickSellId;
+    _origConfirmQuickSell();
+  };
+
+  // Misc hooks
+  const _origSaveMiscItem = saveMisc;
+  saveMisc = function() {
+    const wasEditing = editingMiscId;
+    _origSaveMiscItem();
+    if (wasEditing) _lastChangedMisc = wasEditing;
+    else _lastChangedMisc = miscItems[miscItems.length - 1]?.id;
+    if (isConnected()) saveMiscData();
+  };
+
+  const _origDeleteMisc = deleteMisc;
+  deleteMisc = function(id) {
+    if (!confirm('Delete this expense?')) return;
+    _lastDeletedMisc = id;
+    miscItems = miscItems.filter(m => m.id !== id);
+    saveMiscData();
+    render();
+  };
+
+  // Reorder hook — when cameras are reordered, push positions
+  const _origReorder = reorderCameras;
+  reorderCameras = function(draggedId, targetId, placeAbove) {
+    _origReorder(draggedId, targetId, placeAbove);
+    // _origReorder already calls save(); positions get pushed via the no-change path
+  };
+
+  // ---- Manual sync ----
+  async function syncNow() {
+    if (!isConnected() || syncing) return;
+    setSyncing(true);
+    try {
+      await pullFromCloud();
+      onSyncSuccess();
+      render();
+    } catch (e) {
+      onSyncError('Pull failed: ' + e.message);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  // ---- Setup modal ----
+  function openSyncSetup() {
+    document.getElementById('supabase-url').value = syncConfig?.url || '';
+    document.getElementById('supabase-key').value = syncConfig?.key || '';
+    document.getElementById('setup-status').textContent = '';
+    document.getElementById('setup-status').className = 'setup-status';
+    document.getElementById('local-cam-count').textContent = (() => {
+      try { return (JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')).length; } catch { return 0; }
+    })();
+    document.getElementById('local-misc-count').textContent = (() => {
+      try { return (JSON.parse(localStorage.getItem(MISC_KEY) || '[]')).length; } catch { return 0; }
+    })();
+    document.getElementById('migrate-btn').disabled = !isConnected();
+    document.getElementById('sync-setup-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSyncSetup() {
+    document.getElementById('sync-setup-modal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  async function testAndSaveSync() {
+    const url = document.getElementById('supabase-url').value.trim().replace(/\/+$/, '');
+    const key = document.getElementById('supabase-key').value.trim();
+    const status = document.getElementById('setup-status');
+    status.className = 'setup-status';
+    if (!url || !key) {
+      status.className = 'setup-status error';
+      status.textContent = 'Please fill in both fields.';
+      return;
+    }
+    if (!url.includes('supabase.co')) {
+      status.className = 'setup-status error';
+      status.textContent = 'URL should look like https://yourproject.supabase.co';
+      return;
+    }
+    status.innerHTML = '<span class="sync-spinner"></span> Testing connection...';
+    const oldConfig = syncConfig;
+    syncConfig = { url, key };
+    try {
+      // Try fetching cameras (limit 1) as a connection test
+      await sbFetch('/cameras?select=id&limit=1');
+      saveSyncConfig();
+      status.className = 'setup-status ok';
+      status.textContent = '✓ Connected. Pulling your data from cloud...';
+      await pullFromCloud();
+      render();
+      onSyncSuccess();
+      status.innerHTML = `✓ Connected. Found ${cameras.length} cameras and ${miscItems.length} expenses in cloud.`;
+      document.getElementById('migrate-btn').disabled = false;
+      document.getElementById('local-cam-count').textContent = cameras.length;
+      document.getElementById('local-misc-count').textContent = miscItems.length;
+    } catch (e) {
+      syncConfig = oldConfig;
+      status.className = 'setup-status error';
+      let helpful = e.message;
+      if (e.message.includes('404') || e.message.includes('relation')) helpful += '\n→ Did you run the SQL setup script?';
+      else if (e.message.includes('401') || e.message.includes('JWT') || e.message.includes('Invalid')) helpful += '\n→ Check your publishable key.';
+      else if (e.message.includes('Failed to fetch')) helpful += '\n→ Check the URL — should be https://yourproject.supabase.co';
+      status.textContent = '✗ ' + helpful;
+    }
+  }
+
+  async function migrateLocalToCloud() {
+    if (!isConnected()) return;
+    const localCams = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } })();
+    const localMisc = (() => { try { return JSON.parse(localStorage.getItem(MISC_KEY) || '[]'); } catch { return []; } })();
+    if (localCams.length === 0 && localMisc.length === 0) {
+      document.getElementById('setup-status').className = 'setup-status';
+      document.getElementById('setup-status').textContent = 'Nothing to migrate.';
+      return;
+    }
+    const status = document.getElementById('setup-status');
+    status.className = 'setup-status';
+    status.innerHTML = `<span class="sync-spinner"></span> Pushing ${localCams.length} cameras and ${localMisc.length} expenses...`;
+    try {
+      // Bulk upsert cameras
+      if (localCams.length) {
+        const camPayload = localCams.map((c, i) => ({
+          id: c.id || ('cam_' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,5)),
+          name: c.name, status: c.status || 'in_stock',
+          buy_date: c.buy_date || null, sell_date: c.sell_date || null,
+          buy_price: c.buy_price || null, sell_price: c.sell_price || null,
+          additional_costs: c.additional_costs || null,
+          bought_from: c.bought_from || null, sold_on: c.sold_on || null,
+          notes: c.notes || null, checked: c.checked === true, position: i
+        }));
+        await sbFetch('/cameras?on_conflict=id', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify(camPayload)
+        });
+      }
+      if (localMisc.length) {
+        const miscPayload = localMisc.map((m, i) => ({
+          id: m.id || ('msc_' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,5)),
+          name: m.name, category: m.category || 'other',
+          date: m.date || null, cost: m.cost || null, notes: m.notes || null
+        }));
+        await sbFetch('/misc_expenses?on_conflict=id', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify(miscPayload)
+        });
+      }
+      // Re-pull merged result
+      await pullFromCloud();
+      render();
+      status.className = 'setup-status ok';
+      status.textContent = `✓ Migrated. Cloud now has ${cameras.length} cameras and ${miscItems.length} expenses.`;
+      onSyncSuccess();
+    } catch (e) {
+      status.className = 'setup-status error';
+      status.textContent = '✗ Migration failed: ' + e.message;
+    }
+  }
+
+  function disconnectSync() {
+    if (!confirm('Disconnect from cloud?\n\nYour local data stays. Cloud data is not deleted — you can reconnect anytime.')) return;
+    syncConfig = null;
+    saveSyncConfig();
+    document.getElementById('sync-banner').style.display = 'none';
+    closeSyncSetup();
+  }
+
+  // ============================================================
+  // BACKUP / IMPORT / RESTORE
+  // ============================================================
+  const BACKUP_VERSION = 1;
+
+  function downloadBackup() {
+    const backup = {
+      version: BACKUP_VERSION,
+      exported_at: new Date().toISOString(),
+      app: 'camera-tracker',
+      cameras: cameras,
+      misc: miscItems
+    };
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'camera_tracker_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  let pendingImport = null;
+  let importMode = 'add';
+
+  function openImport() {
+    pendingImport = null;
+    importMode = 'add';
+    document.getElementById('import-file').value = '';
+    document.getElementById('import-preview').style.display = 'none';
+    document.getElementById('import-status').textContent = '';
+    document.getElementById('import-status').className = 'setup-status';
+    setImportMode('add');
+    document.getElementById('import-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeImport() {
+    document.getElementById('import-modal').style.display = 'none';
+    document.body.style.overflow = '';
+    pendingImport = null;
+  }
+  function setImportMode(mode) {
+    importMode = mode;
+    document.getElementById('import-mode-add').className = 'status-btn' + (mode === 'add' ? ' active' : '');
+    document.getElementById('import-mode-replace').className = 'status-btn' + (mode === 'replace' ? ' active repair' : '');
+    document.getElementById('import-mode-explain').textContent = mode === 'add'
+      ? 'Safer option — keeps your current data and adds the new items.'
+      : '⚠ Wipes your current data first, then loads from the file. Use this for restoring from a backup.';
+  }
+
+  function onImportFileChange() {
+    const file = document.getElementById('import-file').files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        // Validate shape
+        const cams = Array.isArray(data.cameras) ? data.cameras : [];
+        const misc = Array.isArray(data.misc) ? data.misc : (Array.isArray(data.misc_expenses) ? data.misc_expenses : []);
+        if (cams.length === 0 && misc.length === 0) throw new Error('No cameras or expenses found in file.');
+
+        pendingImport = { cameras: cams, misc: misc };
+        document.getElementById('import-summary').innerHTML =
+          `Found <strong>${cams.length}</strong> cameras and <strong>${misc.length}</strong> misc expenses in the file.`;
+        document.getElementById('import-preview').style.display = 'block';
+        document.getElementById('import-status').textContent = '';
+      } catch (err) {
+        document.getElementById('import-status').className = 'setup-status error';
+        document.getElementById('import-status').textContent = '✗ ' + err.message;
+        document.getElementById('import-preview').style.display = 'none';
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function makeId(prefix) {
+    return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  }
+
+  async function confirmImport() {
+    if (!pendingImport) return;
+    const status = document.getElementById('import-status');
+
+    if (importMode === 'replace') {
+      const ok = confirm(
+        `⚠ REPLACE ALL DATA?\n\n` +
+        `Your current ${cameras.length} cameras and ${miscItems.length} expenses will be deleted, ` +
+        `replaced with ${pendingImport.cameras.length} cameras and ${pendingImport.misc.length} expenses from the file.\n\n` +
+        `This cannot be undone (unless you have another backup). Continue?`
+      );
+      if (!ok) return;
+    }
+
+    status.className = 'setup-status';
+    status.innerHTML = '<span class="sync-spinner"></span> Importing...';
+
+    try {
+      // Normalize incoming data — ensure each has an id
+      const newCams = pendingImport.cameras.map(c => ({
+        id: c.id || makeId('cam'),
+        name: c.name || 'Untitled',
+        status: c.status || 'in_stock',
+        buy_date: c.buy_date || '',
+        sell_date: c.sell_date || '',
+        buy_price: c.buy_price != null ? String(c.buy_price) : '',
+        sell_price: c.sell_price != null ? String(c.sell_price) : '',
+        additional_costs: c.additional_costs != null ? String(c.additional_costs) : '',
+        bought_from: c.bought_from || 'Vinted',
+        sold_on: c.sold_on || 'Vinted',
+        notes: c.notes || '',
+        checked: c.checked === true
+      }));
+      const newMisc = pendingImport.misc.map(m => ({
+        id: m.id || makeId('msc'),
+        name: m.name || 'Untitled',
+        category: m.category || 'other',
+        date: m.date || '',
+        cost: m.cost != null ? String(m.cost) : '',
+        notes: m.notes || ''
+      }));
+
+      if (importMode === 'replace') {
+        // For cloud: delete everything, then push everything fresh
+        if (isConnected()) {
+          // Wipe cloud
+          await sbFetch('/cameras?id=neq.this_will_match_nothing', { method: 'DELETE' }).catch(() => {});
+          await sbFetch('/misc_expenses?id=neq.this_will_match_nothing', { method: 'DELETE' }).catch(() => {});
+          // Use PostgREST to delete all: filter on a column that always exists
+          await sbFetch('/cameras?id=not.is.null', { method: 'DELETE' });
+          await sbFetch('/misc_expenses?id=not.is.null', { method: 'DELETE' });
+        }
+        cameras = newCams;
+        miscItems = newMisc;
+      } else {
+        // Add — give all imports brand-new IDs to prevent collisions with existing items
+        const reIdCams = newCams.map(c => ({ ...c, id: makeId('cam') }));
+        const reIdMisc = newMisc.map(m => ({ ...m, id: makeId('msc') }));
+        cameras = [...cameras, ...reIdCams];
+        miscItems = [...miscItems, ...reIdMisc];
+      }
+
+      saveLocalCache();
+
+      // Push everything to cloud in bulk if connected
+      if (isConnected()) {
+        status.innerHTML = '<span class="sync-spinner"></span> Pushing to cloud...';
+        if (cameras.length > 0) {
+          const payload = cameras.map((c, i) => ({
+            id: c.id,
+            name: c.name, status: c.status,
+            buy_date: c.buy_date || null, sell_date: c.sell_date || null,
+            buy_price: c.buy_price || null, sell_price: c.sell_price || null,
+            additional_costs: c.additional_costs || null,
+            bought_from: c.bought_from || null, sold_on: c.sold_on || null,
+            notes: c.notes || null,
+            checked: c.checked === true,
+            position: i
+          }));
+          await sbFetch('/cameras?on_conflict=id', {
+            method: 'POST',
+            headers: { 'Prefer': 'resolution=merge-duplicates' },
+            body: JSON.stringify(payload)
+          });
+        }
+        if (miscItems.length > 0) {
+          const payload = miscItems.map(m => ({
+            id: m.id,
+            name: m.name, category: m.category,
+            date: m.date || null, cost: m.cost || null,
+            notes: m.notes || null
+          }));
+          await sbFetch('/misc_expenses?on_conflict=id', {
+            method: 'POST',
+            headers: { 'Prefer': 'resolution=merge-duplicates' },
+            body: JSON.stringify(payload)
+          });
+        }
+        onSyncSuccess();
+      }
+
+      render();
+      status.className = 'setup-status ok';
+      status.innerHTML = `✓ Imported. Total: ${cameras.length} cameras, ${miscItems.length} expenses.`;
+      pendingImport = null;
+      document.getElementById('import-preview').style.display = 'none';
+    } catch (e) {
+      status.className = 'setup-status error';
+      status.textContent = '✗ Import failed: ' + e.message;
+    }
+  }
+
+  // ---- Init: load + auto-sync ----
+  loadSyncConfig();
+  load();
+  loadMisc();
+  setMode(savedMode);
+
+  if (isConnected()) {
+    setSyncBanner('warn', '<span class="sync-spinner"></span> Connecting to cloud...');
+    syncNow();
+  } else {
+    setSyncBanner('warn', '☁ <strong>Local-only.</strong> Click Setup to enable cloud sync across devices.');
+  }
+</script>
+</body>
+</html>
